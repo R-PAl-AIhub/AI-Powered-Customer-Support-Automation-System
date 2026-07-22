@@ -1,0 +1,93 @@
+# Frequently Asked Questions (FAQ)
+
+---
+
+## Q1. What does ABC Technologies provide?
+
+ABC Technologies provides cloud-based business management software for businesses of all sizes.
+
+---
+
+## Q2. How can I change my subscription?
+
+Navigate to:
+
+Settings → Billing → Subscription
+
+Select your desired plan.
+
+---
+
+## Q3. How do I reset my password?
+
+Click "Forgot Password" on the login page and follow the email instructions.
+
+---
+
+## Q4. Do you offer a free trial?
+
+Yes.
+
+We provide a 14-day free trial with no credit card required.
+
+---
+
+## Q5. Which payment methods are accepted?
+
+- Credit Card
+- Debit Card
+- PayPal
+- Bank Transfer (Enterprise)
+
+---
+
+## Q6. How can I contact support?
+
+Email:
+support@abctech.com
+
+Support Hours:
+
+Monday–Friday
+
+9:00 AM–6:00 PM (UTC)
+
+---
+
+## Q7. How do I request a refund?
+
+Refund requests can be submitted through the Billing Portal or by contacting support.
+
+All refund requests require human approval.
+
+---
+
+## Q8. Can I permanently delete my account?
+
+Yes.
+
+Account deletion requires identity verification and supervisor approval.
+
+---
+
+## Q9. What browsers are supported?
+
+Google Chrome
+
+Microsoft Edge
+
+Mozilla Firefox
+
+Safari
+
+---
+
+## Q10. How do I report a bug?
+
+Provide:
+
+- Error message
+- Screenshot
+- Steps to reproduce
+- Browser
+- Operating System

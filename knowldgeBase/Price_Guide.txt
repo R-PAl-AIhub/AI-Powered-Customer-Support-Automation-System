@@ -1,0 +1,99 @@
+# ABC Technologies Pricing Guide
+
+Version: 2026
+
+---
+
+## Starter Plan
+
+Price:
+$19/month
+
+Suitable for:
+- Freelancers
+- Individuals
+
+Features:
+- Up to 3 users
+- Project management
+- Basic reporting
+- Email support
+- 10 GB storage
+
+---
+
+## Professional Plan
+
+Price:
+$49/month
+
+Suitable for:
+- Small businesses
+
+Features:
+- Up to 20 users
+- Advanced analytics
+- Team collaboration
+- API access
+- Priority email support
+- 100 GB storage
+
+---
+
+## Enterprise Plan
+
+Price:
+Custom Pricing
+
+Suitable for:
+- Large organizations
+
+Features:
+- Unlimited users
+- Dedicated account manager
+- Single Sign-On (SSO)
+- Custom integrations
+- 24×7 Premium Support
+- Unlimited storage
+- SLA guarantee
+
+---
+
+## Free Trial
+
+New customers receive a 14-day free trial.
+
+No credit card required.
+
+---
+
+## Billing Cycle
+
+Monthly
+
+Annual (15% discount)
+
+---
+
+## Payment Methods
+
+Accepted payment methods:
+
+- Credit Card
+- Debit Card
+- PayPal
+- Bank Transfer (Enterprise only)
+
+---
+
+## Upgrade Policy
+
+Customers may upgrade their plan at any time.
+
+The remaining subscription amount will be prorated automatically.
+
+---
+
+## Downgrade Policy
+
+Downgrades become effective from the next billing cycle.
