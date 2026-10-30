@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demo transcripts</title>
+<!-- Text below is copied from a real run (chatbot.db, thread customer_session_1, second session). -->
+<style>
+  :root { --bg:#ffffff; --card:#f6f8fa; --line:#d0d7de; --ink:#0b0b0b; --ink2:#52514e; --muted:#6e6d68;
+          --me:#2a78d6; --bot:#ffffff; --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#b07800; --hl:#6250d6; }
+  body[data-theme="dark"] { --bg:#0d1117; --card:#161b22; --line:#30363d; --ink:#f0efec; --ink2:#c3c2b7; --muted:#8b949e;
+          --me:#2f6fc4; --bot:#0d1117; --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --hl:#9085e9; }
+  html, body { margin:0; background:var(--bg); font-family: Inter, "Segoe UI", sans-serif; }
+  #chat { width: 1100px; box-sizing:border-box; padding: 26px 28px 18px; background:var(--bg); }
+  .head { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .head b { font-size:16px; color:var(--ink); }
+  .head span { font-size:12.5px; color:var(--muted); }
+  .row { display:flex; margin: 10px 0; }
+  .row.me { justify-content:flex-end; }
+  .bubble { max-width: 760px; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+  .me .bubble { background: var(--me); color:#fff; border-bottom-right-radius: 4px; }
+  .bot .bubble { background: var(--card); color: var(--ink); border:1px solid var(--line); border-bottom-left-radius: 4px; white-space: pre-line; }
+  .meta { display:flex; gap:8px; margin: 2px 0 6px; font-size:12px; color:var(--ink2); align-items:center; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding: 3px 10px; border-radius:999px; border:1px solid var(--line); background:var(--bg); }
+  .sw { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .tag { font-size: 11px; font-weight:700; letter-spacing: .6px; color: var(--hl); text-transform: uppercase; }
+
+  #term { width: 1100px; box-sizing:border-box; background:#0b0e14; border-radius:14px; overflow:hidden;
+          border:1px solid #2b313b; font-family: "DejaVu Sans Mono", Menlo, monospace; }
+  .bar { height: 38px; background:#161b22; display:flex; align-items:center; gap:8px; padding: 0 16px; border-bottom:1px solid #2b313b; }
+  .bar i { width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .bar span { margin-left: 12px; color:#8b949e; font: 12.5px Inter, sans-serif; }
+  pre { margin:0; padding: 18px 22px 22px; color:#e6edf3; font-size: 13.4px; line-height: 1.55; white-space: pre-wrap; }
+  .g { color:#7ee787; } .y { color:#e3b341; } .b { color:#79c0ff; } .p { color:#d2a8ff; } .d { color:#8b949e; } .r { color:#ff7b72; font-weight:700; }
+</style>
+</head>
+<body>
+<div id="chat">
+  <div class="head"><b>Real session</b><span>· thread customer_session_1 · llama3.2:3b on Ollama · answers shown in full</span></div>
+
+  <div class="row me"><div class="bubble">I forgot my account password.</div></div>
+  <div class="meta"><span class="pill"><span class="sw" style="background:var(--c4)"></span>Classified as <b>Account</b></span><span class="pill">Account_Agent</span><span class="pill">3 KB chunks</span></div>
+  <div class="row bot"><div class="bubble">I'd be happy to help you reset your password.
+
+To reset your password, please follow these steps:
+
+1. Navigate to the login page of our website.
+2. Click on "Forgot Password" below the login form.
+3. Enter your registered email address and click "Send Reset Link".
+4. Open the email we sent to you and click on the reset link.
+5. Create a new password by following the prompts.
+
+If you're having trouble with this process, feel free to ask and I'll do my best to assist you!</div></div>
+
+  <div class="row me"><div class="bubble">My application crashes whenever I upload a file.</div></div>
+  <div class="meta"><span class="pill"><span class="sw" style="background:var(--c2)"></span>Classified as <b>Technical Support</b></span><span class="pill">Technical_Agent</span><span class="pill">3 KB chunks</span></div>
+  <div class="row bot"><div class="bubble">To help resolve the issue with your application crashing when uploading a file, let's try some troubleshooting steps.
+
+1. Please refresh the page and try uploading a small file again to see if the application crashes.
+2. Clear your browser cache and try uploading a file.
+3. Update your browser to the latest version and try uploading a file.
+
+If none of these steps work, please try uploading a file in Incognito Mode and let me know the result.</div></div>
+
+  <div class="row me"><div class="bubble">What was my previous support issue?</div></div>
+  <div class="meta"><span class="tag">memory</span><span class="pill"><span class="sw" style="background:var(--c4)"></span>Classified as <b>Account</b></span><span class="pill">Account_Agent</span><span class="pill">20 messages in thread</span></div>
+  <div class="row bot"><div class="bubble">You previously had issues with your application crashing when uploading a file. We tried some troubleshooting steps to help resolve the issue, including refreshing the page, clearing browser cache, updating browser versions, and trying in Incognito Mode. If none of these steps worked, please let me know if you'd like to explore further options or if there's anything else I can assist you with regarding this issue.</div></div>
+</div>
+
+<div style="height:40px"></div>
+
+<div id="term">
+  <div class="bar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i><span>python app.py — human-in-the-loop escalation</span></div>
+<pre><span class="d">=== AI-Powered Customer Support Automation System ===</span>
+<span class="b">Customer:</span> I need a refund for my annual subscription
+
+<span class="p">◆ Classified as:</span> Billing
+<span class="p">◆ Agent:</span> Billing_Agent
+<span class="p">◆ Retrieved 3 KB chunks:</span> <span class="d">Priority levels … # Refund Policy … (trimmed)</span>
+
+<span class="y">========================================</span>
+<span class="r">▲  SUPERVISOR REVIEW REQUIRED</span>
+<span class="y">========================================</span>
+Customer : I need a refund for my annual subscription
+Draft    : I'd be happy to help you with your refund request. Please note that our refund policy states that requests must be made within 30 days of purchasing an annual subscription, and processing time is typically 5-7 business days after approval.
+
+Can you please provide me with the order number or the date of purchase so I can look into this further for you?
+<span class="y">========================================</span>
+
+<span class="g">Supervisor — 'approve' or instructions:</span> approve
+<span class="p">◆ Memory:</span> 18 messages stored in this conversation
+
+<span class="b">Agent:</span> I'd be happy to help you with your refund request. Please note that our refund policy states that requests must be made within 30 days of purchasing an annual subscription, and processing time is typically 5-7 business days after approval.
+
+Can you please provide me with the order number or the date of purchase so I can look into this further for you?</pre>
+</div>
+</body>
+</html>

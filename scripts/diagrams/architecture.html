@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>LangGraph architecture</title>
+<style>
+  :root {
+    --bg: #ffffff; --card: #f6f8fa; --line: #d0d7de; --ink: #0b0b0b; --ink2: #52514e; --muted: #6e6d68;
+    --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --hl: #6250d6; --warn: #d1242f; --chip: #ffffff;
+  }
+  body[data-theme="dark"] {
+    --bg: #0d1117; --card: #161b22; --line: #30363d; --ink: #f0efec; --ink2: #c3c2b7; --muted: #8b949e;
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --hl: #9085e9; --warn: #f85149; --chip: #0d1117;
+  }
+  html, body { margin: 0; background: var(--bg); }
+  svg { display: block; font-family: Inter, "Segoe UI", sans-serif; }
+  .t { fill: var(--ink); } .t2 { fill: var(--ink2); } .m { fill: var(--muted); }
+  .card { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+  .chip { fill: var(--chip); stroke: var(--line); stroke-width: 1; }
+  .w { stroke: var(--ink2); stroke-width: 1.6; fill: none; }
+  .wd { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-dasharray: 5 5; }
+  .dia { fill: var(--chip); stroke: var(--hl); stroke-width: 1.6; }
+</style>
+</head>
+<body>
+<svg id="diagram" width="1200" height="724" viewBox="0 0 1200 724" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink2)"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/>
+    </marker>
+  </defs>
+
+  <text x="24" y="30" class="m" font-size="12" font-weight="600" letter-spacing="1.2">LANGGRAPH STATE GRAPH · graph/workflow.py</text>
+  <text x="890" y="30" class="m" font-size="12" font-weight="600" letter-spacing="1.2">SHARED SERVICES</text>
+
+  <!-- customer -->
+  <rect x="312" y="44" width="260" height="56" rx="28" class="card"/>
+  <text x="442" y="68" class="t" font-size="15" font-weight="700" text-anchor="middle">Customer query</text>
+  <text x="442" y="87" class="m" font-size="12" text-anchor="middle">app.py · terminal chat</text>
+  <path d="M442 100 V 120" class="w" marker-end="url(#a)"/>
+
+  <!-- classify -->
+  <rect x="292" y="124" width="300" height="60" rx="12" class="card"/>
+  <rect x="292" y="124" width="300" height="5" rx="2.5" style="fill: var(--hl)"/>
+  <text x="442" y="152" class="t" font-size="15" font-weight="700" text-anchor="middle">classifyQuery</text>
+  <text x="442" y="171" class="m" font-size="12" text-anchor="middle">LLM picks 1 of 4 intents</text>
+
+  <!-- router fan-out -->
+  <path d="M442 184 V 206 M130 206 H 754" class="w"/>
+  <text x="452" y="200" class="t2" font-size="12" font-weight="600">router</text>
+  <path d="M130 206 V 226" class="w" marker-end="url(#a)"/>
+  <path d="M338 206 V 226" class="w" marker-end="url(#a)"/>
+  <path d="M546 206 V 226" class="w" marker-end="url(#a)"/>
+  <path d="M754 206 V 226" class="w" marker-end="url(#a)"/>
+
+  <!-- agents -->
+  <g font-size="12">
+    <g transform="translate(35,230)">
+      <rect width="190" height="134" rx="12" class="card"/><rect width="190" height="5" rx="2.5" style="fill: var(--c1)"/>
+      <text x="16" y="30" class="t" font-size="14.5" font-weight="700">Sales_Agent</text>
+      <text x="16" y="48" class="m" font-size="11.5">plans · pricing · features</text>
+      <text x="16" y="76" class="t2">① retrieve 3 KB chunks</text>
+      <text x="16" y="96" class="t2">② draft reply + history</text>
+      <text x="16" y="116" class="t2">③ needs_human(query)</text>
+    </g>
+    <g transform="translate(243,230)">
+      <rect width="190" height="134" rx="12" class="card"/><rect width="190" height="5" rx="2.5" style="fill: var(--c2)"/>
+      <text x="16" y="30" class="t" font-size="14.5" font-weight="700">Technical_Agent</text>
+      <text x="16" y="48" class="m" font-size="11.5">errors · login · install</text>
+      <text x="16" y="76" class="t2">① retrieve 3 KB chunks</text>
+      <text x="16" y="96" class="t2">② draft reply + history</text>
+      <text x="16" y="116" class="t2">③ needs_human(query)</text>
+    </g>
+    <g transform="translate(451,230)">
+      <rect width="190" height="134" rx="12" class="card"/><rect width="190" height="5" rx="2.5" style="fill: var(--c3)"/>
+      <text x="16" y="30" class="t" font-size="14.5" font-weight="700">Billing_Agent</text>
+      <text x="16" y="48" class="m" font-size="11.5">invoices · payments · refunds</text>
+      <text x="16" y="76" class="t2">① retrieve 3 KB chunks</text>
+      <text x="16" y="96" class="t2">② draft reply + history</text>
+      <text x="16" y="116" class="t2">③ needs_human(query)</text>
+    </g>
+    <g transform="translate(659,230)">
+      <rect width="190" height="134" rx="12" class="card"/><rect width="190" height="5" rx="2.5" style="fill: var(--c4)"/>
+      <text x="16" y="30" class="t" font-size="14.5" font-weight="700">Account_Agent</text>
+      <text x="16" y="48" class="m" font-size="11.5">password · profile · fallback</text>
+      <text x="16" y="76" class="t2">① retrieve 3 KB chunks</text>
+      <text x="16" y="96" class="t2">② draft reply + history</text>
+      <text x="16" y="116" class="t2">③ needs_human(query)</text>
+    </g>
+  </g>
+
+  <!-- converge -->
+  <path d="M130 364 V 388 M338 364 V 388 M546 364 V 388 M754 364 V 388 M130 388 H 754" class="w"/>
+  <path d="M442 388 V 404" class="w" marker-end="url(#a)"/>
+  <text x="452" y="402" class="t2" font-size="12" font-weight="600">route_after_draft</text>
+
+  <!-- decision 1 -->
+  <polygon points="442,408 532,444 442,480 352,444" class="dia"/>
+  <text x="442" y="448" class="t" font-size="13" font-weight="700" text-anchor="middle">needs_review?</text>
+
+  <!-- no -> finalize -->
+  <path d="M532 444 H 636" class="w" marker-end="url(#a)"/>
+  <text x="560" y="436" class="t2" font-size="12">no</text>
+  <g transform="translate(640,414)">
+    <rect width="190" height="60" rx="12" class="card"/>
+    <rect width="5" height="60" rx="2.5" style="fill: var(--c3)"/>
+    <text x="18" y="27" class="t" font-size="14.5" font-weight="700">finalize</text>
+    <text x="18" y="46" class="m" font-size="12">final_response → customer</text>
+  </g>
+
+  <!-- yes -> human review -->
+  <path d="M442 480 V 508" class="w" marker-end="url(#a)"/>
+  <text x="452" y="499" class="t2" font-size="12">yes · refund, cancel, close account …</text>
+  <g transform="translate(292,512)">
+    <rect width="300" height="62" rx="12" class="card"/>
+    <rect width="300" height="5" rx="2.5" style="fill: var(--warn)"/>
+    <text x="150" y="31" class="t" font-size="14.5" font-weight="700" text-anchor="middle">human_review</text>
+    <text x="150" y="50" class="m" font-size="12" text-anchor="middle">interrupt(ai_draft) · graph pauses</text>
+  </g>
+
+  <!-- supervisor -->
+  <g transform="translate(640,518)">
+    <rect width="190" height="50" rx="25" class="chip"/>
+    <circle cx="26" cy="25" r="9" style="fill: var(--warn)"/>
+    <text x="44" y="22" class="t" font-size="13.5" font-weight="700">Supervisor</text>
+    <text x="44" y="39" class="m" font-size="11.5">“approve” or instructions</text>
+  </g>
+  <path d="M592 534 H 636" class="wd" marker-end="url(#b)"/>
+  <path d="M640 552 H 596" class="wd" marker-end="url(#b)"/>
+
+  <!-- decision 2 -->
+  <path d="M442 574 V 598" class="w" marker-end="url(#a)"/>
+  <text x="452" y="592" class="t2" font-size="12" font-weight="600">route_after_review</text>
+  <polygon points="442,602 532,638 442,674 352,638" class="dia"/>
+  <text x="442" y="642" class="t" font-size="13" font-weight="700" text-anchor="middle">approved?</text>
+
+  <!-- approved -> finalize -->
+  <path d="M532 638 H 856 V 444 H 834" class="w" marker-end="url(#a)"/>
+  <text x="560" y="630" class="t2" font-size="12">yes</text>
+
+  <!-- not approved -> revise -->
+  <path d="M352 638 H 254" class="w" marker-end="url(#a)"/>
+  <text x="306" y="630" class="t2" font-size="12">no</text>
+  <g transform="translate(60,612)">
+    <rect width="190" height="54" rx="12" class="card"/>
+    <rect width="190" height="5" rx="2.5" style="fill: var(--hl)"/>
+    <text x="95" y="29" class="t" font-size="14.5" font-weight="700" text-anchor="middle">revise_response</text>
+    <text x="95" y="46" class="m" font-size="11.5" text-anchor="middle">LLM rewrites from feedback</text>
+  </g>
+  <path d="M155 612 V 543 H 288" class="w" marker-end="url(#a)"/>
+  <text x="166" y="536" class="t2" font-size="12">review again</text>
+
+  <!-- ================= services ================= -->
+  <g transform="translate(886,44)">
+    <rect width="290" height="104" rx="12" class="card"/>
+    <text x="18" y="30" class="t" font-size="14.5" font-weight="700">Ollama · llama3.2:3b</text>
+    <text x="18" y="52" class="t2" font-size="12.5">Local chat model, temperature 0</text>
+    <text x="18" y="72" class="m" font-size="12">Used by classifyQuery, the 4 agents</text>
+    <text x="18" y="89" class="m" font-size="12">and revise_response</text>
+  </g>
+  <g transform="translate(886,162)">
+    <rect width="290" height="124" rx="12" class="card"/>
+    <text x="18" y="30" class="t" font-size="14.5" font-weight="700">Knowledge base (RAG)</text>
+    <text x="18" y="52" class="t2" font-size="12.5">Company Policy · FAQ</text>
+    <text x="18" y="70" class="t2" font-size="12.5">Price Guide · Technical Manual</text>
+    <text x="18" y="92" class="m" font-size="12">Chunks of 500 chars, 50 overlap</text>
+    <text x="18" y="109" class="m" font-size="12">knowldgeBase/vector_db.py</text>
+  </g>
+  <g transform="translate(886,300)">
+    <rect width="290" height="104" rx="12" class="card"/>
+    <text x="18" y="30" class="t" font-size="14.5" font-weight="700">FAISS vector store</text>
+    <text x="18" y="52" class="t2" font-size="12.5">nomic-embed-text · 768-d vectors</text>
+    <text x="18" y="72" class="m" font-size="12">Retriever returns the top 3 chunks</text>
+    <text x="18" y="89" class="m" font-size="12">for every agent call</text>
+  </g>
+  <g transform="translate(886,418)">
+    <rect width="290" height="104" rx="12" class="card"/>
+    <text x="18" y="30" class="t" font-size="14.5" font-weight="700">SqliteSaver memory</text>
+    <text x="18" y="52" class="t2" font-size="12.5">chatbot.db · one state per thread_id</text>
+    <text x="18" y="72" class="m" font-size="12">Conversation survives restarts.</text>
+    <text x="18" y="89" class="m" font-size="12">Interrupts resume from here.</text>
+  </g>
+  <g transform="translate(886,536)">
+    <rect width="290" height="130" rx="12" class="card"/>
+    <text x="18" y="30" class="t" font-size="14.5" font-weight="700">Escalation rules</text>
+    <text x="18" y="52" class="t2" font-size="12.5">Decided in code, not by the LLM</text>
+    <text x="18" y="74" class="m" font-size="12">12 triggers: refund · money back ·</text>
+    <text x="18" y="91" class="m" font-size="12">cancel · close my account · compensation ·</text>
+    <text x="18" y="108" class="m" font-size="12">escalate · speak to a manager …</text>
+  </g>
+
+  <!-- legend -->
+  <g transform="translate(24,700)">
+    <path d="M0 0 H34" class="w" marker-end="url(#a)"/>
+    <text x="44" y="4" class="t2" font-size="12.5">graph edge</text>
+    <path d="M150 0 H184" class="wd" marker-end="url(#b)"/>
+    <text x="194" y="4" class="t2" font-size="12.5">human input via interrupt / Command(resume=…)</text>
+    <polygon points="520,-9 538,0 520,9 502,0" class="dia"/>
+    <text x="548" y="4" class="t2" font-size="12.5">conditional edge</text>
+  </g>
+</svg>
+</body>
+</html>
