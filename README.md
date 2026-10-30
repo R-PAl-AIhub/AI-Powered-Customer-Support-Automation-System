@@ -1,216 +1,325 @@
-# AI-Powered Customer Support Automation System
+<div align="center">
 
-A multi-agent customer-support assistant built with **LangGraph**. It classifies an
-incoming customer query, routes it to the right department agent, answers using a
-**RAG** knowledge base, and escalates sensitive requests (refunds, cancellations,
-account closures) to a **human supervisor** via a human-in-the-loop review step.
-Conversations are persisted with a SQLite checkpointer, so the bot remembers history
-across turns and restarts.
+<img src="assets/diagrams/banner.png" alt="AI-Powered Customer Support Automation: LangGraph multi-agent assistant with RAG and human-in-the-loop review" width="100%">
 
----
+<br>
 
-## Features
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-state%20graph-1C3C3C?style=flat-square&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=flat-square&logo=langchain&logoColor=white)](https://python.langchain.com/)
+[![Ollama](https://img.shields.io/badge/Ollama-llama3.2%3A3b-000000?style=flat-square&logo=ollama&logoColor=white)](https://ollama.com/)
+[![FAISS](https://img.shields.io/badge/Vector%20store-FAISS-0467DF?style=flat-square)](https://github.com/facebookresearch/faiss)
+[![SQLite](https://img.shields.io/badge/Memory-SQLite%20checkpointer-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://langchain-ai.github.io/langgraph/concepts/persistence/)
+[![HITL](https://img.shields.io/badge/Human--in--the--loop-interrupt%20%2F%20resume-D1242F?style=flat-square)](#-human-in-the-loop)
 
-- **Intent classification** — every query is classified into Sales, Technical Support, Billing, Account, or General.
-- **Department routing** — a router sends the query to the matching specialist agent.
-- **RAG answers** — agents retrieve relevant chunks from a FAISS vector store built from the knowledge-base documents.
-- **Deterministic human escalation** — sensitive requests are detected in code (not left to the LLM) and paused for supervisor approval.
-- **Human-in-the-loop** — the graph interrupts, shows the draft to a supervisor, and resumes with their feedback (approve or revise).
-- **Persistent memory** — `SqliteSaver` stores conversation state per `thread_id` in `chatbot.db`.
+**[See it work](#-see-it-work)** · **[Architecture](#-architecture)** · **[Human-in-the-loop](#-human-in-the-loop)** · **[RAG](#-knowledge-base-rag)** · **[Run it](#-run-it-yourself)**
+
+</div>
 
 ---
 
-## Architecture
+A customer-support assistant built as a **LangGraph state graph**.
+An LLM reads each query and picks one of four intents. A router sends the query to the matching **specialist agent**.
+The agent answers from a **FAISS knowledge base** of company documents.
+Risky requests, such as refunds, cancellations and account closures, **pause the graph for a human supervisor**.
+A **SQLite checkpointer** keeps every conversation, so the assistant remembers earlier turns, even after a restart.
 
-```
-                ┌──────────────┐
-   customer ──► │ classifyQuery│  (LLM → Sales / Technical / Billing / Account / General)
-                └──────┬───────┘
-                       │ router
-        ┌──────────────┼───────────────┬───────────────┐
-        ▼              ▼               ▼               ▼
-   Sales_Agent   Technical_Agent   Billing_Agent   Account_Agent     (RAG + draft + needs_review)
-        └──────────────┴───────────────┴───────────────┘
-                       │ route_after_draft
-            needs_review? ──No──────────────► finalize ──► reply to customer
-                       │ Yes
-                       ▼
-                 human_review  ── interrupt() → supervisor sees draft
-                       │ route_after_review
-              approve ─┴─ instructions
-                 │             │
-                 ▼             ▼
-              finalize    revise_response ──► back to human_review
-```
+Everything runs on your own machine through **Ollama**. No cloud API keys are needed.
+
+## ⚡ At a glance
+
+| | |
+|---|---|
+| **Agents** | 4 specialists: Sales · Technical Support · Billing · Account |
+| **Routing** | LLM intent classifier (`classifyQuery`) → `router` → agent node |
+| **Answers** | RAG over 4 company documents · FAISS · top-3 chunks · conversation history in every prompt |
+| **Safety** | Escalation decided **in code**, not by the LLM · 12 trigger phrases · supervisor approves or rewrites |
+| **Memory** | `SqliteSaver` checkpoints per `thread_id` in `chatbot.db` · survives restarts |
+| **Models** | `llama3.2:3b` (chat, temperature 0) · `nomic-embed-text` (768-d embeddings) · both on Ollama |
+| **Interface** | Terminal chat (`app.py`) with an inline supervisor prompt |
 
 ---
 
-## Project structure
+## 🎬 See it work
 
-```
-.
-├── app.py                      # CLI entry point: runs the chat loop + supervisor prompts
-├── chatbot.db                  # SQLite checkpointer store (conversation memory)
-│
-├── graph/
-│   ├── CustomerSupportState.py # The shared TypedDict state passed between nodes
-│   └── workflow.py             # Builds and compiles the LangGraph graph
-│
-├── nodes/
-│   ├── classifyQuery.py        # Classifies the query into a department label
-│   ├── router.py               # Maps the classification → agent node
-│   ├── route_after_draft.py    # After an agent drafts: human_review or finalize
-│   ├── route_after_review.py   # After review: finalize (approved) or revise_response
-│   ├── human_review_node.py    # Pauses the graph (interrupt) for supervisor input
-│   ├── revise_response.py      # Rewrites the draft using supervisor feedback
-│   └── finalize.py             # Sets final_response from the approved draft
-│
-├── agents/
-│   ├── sales_agent.py          # Department specialists. Each one:
-│   ├── billing_agent.py        #  - retrieves KB context (RAG)
-│   ├── technical_support.py    #  - drafts a reply with conversation history
-│   └── account_agent.py        #  - flags sensitive requests for review
-│
-├── knowldgeBase/
-│   ├── *.txt                   # Source documents (policies, FAQ, pricing, manual)
-│   ├── vector_db.py            # One-time script: builds the FAISS vector store
-│   ├── database_retriver.py    # Loads the store and exposes a retriever
-│   └── ai_support_vector_db/   # Saved FAISS index (generated)
-│
-└── utils/
-    ├── llm.py                  # ChatOllama LLM config (llama3.2:3b)
-    ├── escalation.py           # needs_human(): keyword check for escalation
-    └── history.py              # format_history(): prior turns for follow-up questions
-```
+These are real turns from one session, read back from `chatbot.db`. Each turn shows the routing decision the app printed.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/demo-conversation-dark.png">
+  <img alt="Chat transcript. Password question routed to Account_Agent with five reset steps. App crash question routed to Technical_Agent with troubleshooting steps. 'What was my previous support issue?' answered from memory." src="assets/diagrams/demo-conversation-light.png" width="100%">
+</picture>
+
+### A refund request goes to a supervisor first
+
+<img alt="Terminal: refund request classified as Billing, routed to Billing_Agent, SUPERVISOR REVIEW REQUIRED with the draft, supervisor types approve, final reply sent." src="assets/diagrams/demo-escalation.png" width="100%">
+
+<sub>Text is copied from the run. Emoji in the terminal output are shown as ◆ / ▲. The retrieved chunks are trimmed. The original screenshots are in [`docs/screenshots/`](docs/screenshots/).</sub>
+
+### Routing log from that session
+
+| # | Customer query | Classified as | Agent | Supervisor review |
+|---:|---|---|---|---|
+| 1 | What are the pricing plans available for your software? | Sales | `Sales_Agent` | — |
+| 2 | I forgot my account password. | Account | `Account_Agent` | — |
+| 3 | My application crashes whenever I upload a file. | Technical Support | `Technical_Agent` | — |
+| 4 | I need a refund for my annual subscription | Billing | `Billing_Agent` | **Yes** · approved |
+| 5 | What was my previous support issue? | Account | `Account_Agent` | — |
+
+The thread held 20 messages after this session (10 customer turns over two sessions).
 
 ---
 
-## State (`CustomerSupportState`)
+## 🧠 Architecture
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/architecture-dark.png">
+  <img alt="LangGraph architecture: customer query, classifyQuery, router to four agents, route_after_draft decision, finalize or human_review interrupt with supervisor, route_after_review to finalize or revise_response loop. Side panel: Ollama llama3.2:3b, knowledge base, FAISS, SqliteSaver memory, escalation rules." src="assets/diagrams/architecture-light.png" width="100%">
+</picture>
+
+### The graph, node by node
+
+This is the graph that [`graph/workflow.py`](graph/workflow.py) builds:
+
+```mermaid
+flowchart TD
+    Q([Customer query]) --> C[classifyQuery<br/>LLM intent classifier]
+    C -- Sales --> S[Sales_Agent]
+    C -- Technical Support --> T[Technical_Agent]
+    C -- Billing --> B[Billing_Agent]
+    C -- "Account / other" --> A[Account_Agent]
+    S & T & B & A --> D{needs_review?}
+    D -- no --> F[finalize]
+    D -- yes --> H[human_review<br/>interrupt]
+    H --> R{approved?}
+    R -- yes --> F
+    R -- no --> V[revise_response<br/>LLM rewrite]
+    V --> H
+    F --> E([Reply to customer])
+```
+
+1. **`classifyQuery`** asks the LLM for exactly one label: Sales, Technical Support, Billing or Account.
+2. **`router`** maps the label to an agent node. Any other label goes to `Account_Agent`. That agent also answers memory questions.
+3. The **agent** retrieves 3 knowledge-base chunks and drafts a reply with the recent conversation. It stores the draft in `ai_draft` and sets `needs_review` with `needs_human()`.
+4. **`route_after_draft`** sends the turn to `human_review` when `needs_review` is true. Otherwise it goes to `finalize`.
+5. **`human_review`** calls `interrupt(ai_draft)`. The graph pauses and `app.py` shows the draft to the supervisor.
+6. **`route_after_review`** finalizes on approval. Any other reply goes to **`revise_response`**, which rewrites the draft and loops back to review.
+7. **`finalize`** copies the approved draft into `final_response`.
+
+### Who handles what
+
+The classifier prompt in [`nodes/classifyQuery.py`](nodes/classifyQuery.py) defines the four intents:
+
+| Intent | Agent | Typical questions |
+|---|---|---|
+| 🛒 **Sales** | `Sales_Agent` | Product information · subscription plans · pricing · purchases · feature comparisons |
+| 🛠️ **Technical Support** | `Technical_Agent` | App errors · installation · login problems · configuration · bugs · performance |
+| 💳 **Billing** | `Billing_Agent` | Invoices · payment issues · refunds · charges · billing history · failed payments |
+| 👤 **Account** | `Account_Agent` | Password reset · profile updates · activation / deactivation · settings · email changes |
+
+---
+
+## 🧑‍⚖️ Human-in-the-loop
+
+The graph does not let the LLM decide when a human must step in. Small models do not follow a "return the word human" instruction reliably. So [`utils/escalation.py`](utils/escalation.py) checks the query in plain Python:
+
+```python
+ESCALATION_TRIGGERS = [
+    "refund", "money back", "cancel", "cancellation",
+    "close my account", "close account", "account closure", "delete my account",
+    "compensation", "escalate", "speak to a manager", "speak to manager",
+]
+
+def needs_human(text: str) -> bool:
+    t = text.lower()
+    return any(trigger in t for trigger in ESCALATION_TRIGGERS)
+```
+
+These triggers match the escalation policy in the knowledge base (`Company_Policy_Document.txt`): refunds, cancellations, account closures, compensation and requests for management always go to a human.
+
+### Pause and resume
+
+```mermaid
+sequenceDiagram
+    actor C as Customer
+    participant App as app.py
+    participant G as LangGraph
+    participant M as SqliteSaver
+    actor S as Supervisor
+    C->>App: I need a refund for my annual subscription
+    App->>G: invoke(state, thread_id)
+    G->>G: classifyQuery → Billing_Agent (RAG + draft)
+    G->>G: needs_human() finds "refund" → needs_review = True
+    G->>M: save checkpoint
+    G-->>App: __interrupt__ with the draft
+    App->>S: show customer query + draft
+    S->>App: "approve" or new instructions
+    App->>G: Command(resume=feedback)
+    alt approved
+        G->>G: finalize
+    else instructions
+        G->>G: revise_response → human_review again
+    end
+    G-->>App: final_response
+    App->>C: Agent reply
+```
+
+The supervisor types **`approve`** (or `yes`, `ok`, `looks good`) to send the draft. Anything else counts as revision instructions.
+
+---
+
+## 📚 Knowledge base (RAG)
+
+```mermaid
+flowchart LR
+    K["4 text documents<br/>policy · FAQ · prices · manual"] --> SP["RecursiveCharacterTextSplitter<br/>500 chars · 50 overlap"]
+    SP --> EM["nomic-embed-text<br/>768-d embeddings"]
+    EM --> IX[("FAISS index<br/>ai_support_vector_db/")]
+    IX --> RT["Retriever<br/>top 3 chunks"]
+    RT --> AG["Agent prompt<br/>history + context + query"]
+    AG --> LLM["llama3.2:3b<br/>draft reply"]
+```
+
+| Document | What it covers |
+|---|---|
+| [`Company_Policy_Document.txt`](knowldgeBase/Company_Policy_Document.txt) | Support hours and priority levels · refund, cancellation, account-closure and compensation rules · escalation policy |
+| [`FAQ_document.txt`](knowldgeBase/FAQ_document.txt) | Ten common questions: subscriptions, password reset, free trial, payment methods, browsers, bug reports |
+| [`Price_Guide.txt`](knowldgeBase/Price_Guide.txt) | Starter, Professional and Enterprise plans · billing cycles · upgrade and downgrade rules |
+| [`Technical_Manual.txt`](knowldgeBase/Technical_Manual.txt) | Platforms · login and password steps · upload limits · crash troubleshooting · API limits |
+
+The company, **ABC Technologies**, is fictional. The documents exist to test the assistant.
+
+Every agent prompt tells the model to use the conversation history for follow-ups, and **only the retrieved context for facts**.
+
+---
+
+## 🗂️ Shared state
+
+All nodes read and write one `TypedDict`, defined in [`graph/CustomerSupportState.py`](graph/CustomerSupportState.py):
 
 | Field | Type | Purpose |
-|-------|------|---------|
-| `messages` | list (`add_messages`) | Full conversation history (appended automatically) |
-| `customer_queries` | str | Raw customer query (optional) |
-| `classify_customer_issue` | str | Department label from the classifier |
-| `support_department` | str | Concerned department |
-| `ai_draft` | str | Current draft reply (single source of truth for review) |
-| `human_feedback` | str | Supervisor's reply during human review |
+|---|---|---|
+| `messages` | list (`add_messages`) | Full conversation. New messages are appended. |
+| `customer_queries` | str | Raw customer query |
+| `classify_customer_issue` | str | Label from the classifier |
+| `support_department` | str | Department that must act |
+| `ai_draft` | str | Current draft reply. Review always works on this field. |
+| `human_feedback` | str | Supervisor reply during review |
 | `kb_context` | str | Retrieved knowledge-base text |
-| `needs_review` | bool | True when the request must be escalated |
-| `final_response` | str | Final answer sent to the customer |
+| `needs_review` | bool | True when the request must go to a human |
+| `final_response` | str | Answer sent to the customer |
 
 ---
 
-## Requirements
+## 🚀 Run it yourself
 
-- **Python 3.11+**
-- **[Ollama](https://ollama.com/)** running locally, with the required models pulled.
-- Python packages:
-  - `langgraph`
-  - `langchain-core`
-  - `langchain-community`
-  - `langchain-ollama`
-  - `langchain-text-splitters`
-  - `langgraph-checkpoint-sqlite`
-  - `faiss-cpu`
-  - `pydantic`
-
-Install:
+**Needs:** Python 3.11+ and [Ollama](https://ollama.com/) running on your machine.
 
 ```bash
-pip install langgraph langchain-core langchain-community langchain-ollama \
-            langchain-text-splitters langgraph-checkpoint-sqlite faiss-cpu pydantic
-```
+# 1. Get the code
+git clone https://github.com/R-PAl-AIhub/AI-Powered-Customer-Support-Automation-System.git
+cd AI-Powered-Customer-Support-Automation-System
 
----
+# 2. Install
+pip install -r requirements.txt
 
-## Setup
+# 3. Pull the two local models
+ollama pull llama3.2:3b          # chat model
+ollama pull nomic-embed-text     # embedding model
 
-**1. Start Ollama and pull the models** used in `utils/llm.py` and the embeddings:
-
-```bash
-ollama serve                       # if not already running
-ollama pull llama3.2:3b            # chat model
-ollama pull nomic-embed-text       # embedding model for the vector store
-```
-
-**2. Build the knowledge-base vector store** (run once, or whenever the documents change):
-
-```bash
+# 4. Build the vector store (once, or after you change the documents)
 python -m knowldgeBase.vector_db
-```
 
-This reads the `.txt` files, chunks and embeds them, and saves the FAISS index.
-
----
-
-## Running
-
-From the **project root**, run:
-
-```bash
+# 5. Chat
 python app.py
 ```
 
-Then chat in the terminal:
+Type `exit` to quit. Run all commands from the project root so the package imports resolve.
 
-```
-=== AI-Powered Customer Support Automation System ===
-Customer: What are your pricing plans?
-Agent: We offer Basic ($10/mo), Pro ($25/mo) ...
-```
+**Memory:** `app.py` uses one fixed `thread_id` (`customer_session_1`). The conversation continues after a restart. To start fresh, change the `thread_id` or delete `chatbot.db`.
 
-Type `exit` to quit.
+<details>
+<summary><b>Customize</b></summary>
 
-### Human escalation example
+<br>
 
-```
-Customer: I need a refund for my annual subscription.
+| To change | Edit |
+|---|---|
+| Chat model | `utils/llm.py` |
+| Embedding model | `knowldgeBase/vector_db.py` **and** `knowldgeBase/database_retriver.py` (both must match) |
+| Escalation triggers | `utils/escalation.py` |
+| Approval words | `nodes/route_after_review.py` |
+| Knowledge base | Add or replace `.txt` files in `knowldgeBase/`, then rebuild the vector store |
+| Number of retrieved chunks | `search_kwargs={"k": 3}` in `knowldgeBase/database_retriver.py` |
 
-========================================
-⚠️  SUPERVISOR REVIEW REQUIRED
-========================================
-Customer : I need a refund for my annual subscription.
-Draft    : <the AI's proposed reply>
-========================================
-
-Supervisor — 'approve' or instructions: please apologise and confirm the 30-day window
-🤖 Response revised.
-...
-Supervisor — 'approve' or instructions: approve
-
-Agent: <final approved reply to the customer>
-```
-
-- Type **`approve`** (or `yes` / `ok`) to send the draft as-is.
-- Type **anything else** to give revision instructions; the draft is rewritten and re-reviewed.
+</details>
 
 ---
 
-## How it works
+## 📁 Project structure
 
-1. **`classifyQuery`** asks the LLM to label the query (Sales / Technical Support / Billing / Account / General).
-2. **`router`** maps that label to the matching agent node.
-3. The **agent** retrieves relevant KB chunks, drafts a reply (using conversation history), stores it in `ai_draft`, and sets `needs_review` via `utils/escalation.needs_human()`.
-4. **`route_after_draft`** sends the case to `human_review` when `needs_review` is true, otherwise to `finalize`.
-5. **`human_review`** calls `interrupt(ai_draft)` — the graph pauses and surfaces the draft to `app.py`, which prompts the supervisor.
-6. **`route_after_review`** finalizes on approval, or sends to **`revise_response`** (which rewrites the draft from feedback) and loops back to review.
-7. **`finalize`** copies the approved draft into `final_response`, which is shown to the customer.
+```text
+.
+├── app.py                        # terminal chat loop + supervisor prompt
+├── requirements.txt
+├── graph/
+│   ├── CustomerSupportState.py   # shared TypedDict state
+│   └── workflow.py               # builds and compiles the LangGraph graph
+├── nodes/
+│   ├── classifyQuery.py          # LLM intent classifier
+│   ├── router.py                 # label → agent node
+│   ├── route_after_draft.py      # human_review or finalize
+│   ├── human_review_node.py      # interrupt() for the supervisor
+│   ├── route_after_review.py     # finalize or revise_response
+│   ├── revise_response.py        # rewrite the draft from feedback
+│   └── finalize.py               # final_response
+├── agents/
+│   ├── sales_agent.py            # each agent: retrieve → draft → needs_human()
+│   ├── technical_support.py
+│   ├── billing_agent.py
+│   └── account_agent.py
+├── knowldgeBase/
+│   ├── *.txt                     # company documents
+│   ├── vector_db.py              # builds the FAISS index
+│   ├── database_retriver.py      # loads the index as a retriever
+│   └── ai_support_vector_db/     # saved FAISS index
+├── utils/
+│   ├── llm.py                    # ChatOllama config
+│   ├── escalation.py             # needs_human()
+│   └── history.py                # format_history() for follow-ups
+├── assets/diagrams/              # images in this README
+├── scripts/diagrams/             # HTML sources for those images
+├── docs/screenshots/             # original terminal screenshots
+└── chatbot.db                    # SQLite conversation memory
+```
+
+## 🧰 Tech stack
+
+| Area | Tools |
+|---|---|
+| Orchestration | LangGraph `StateGraph` · conditional edges · `interrupt` / `Command(resume=…)` |
+| LLM | Ollama · Llama 3.2 3B · temperature 0 |
+| Retrieval | LangChain · FAISS · `nomic-embed-text` · `RecursiveCharacterTextSplitter` |
+| Memory | `langgraph-checkpoint-sqlite` (`SqliteSaver`) |
+| Language | Python 3.11 |
+
+## 🧭 Scope and next steps
+
+| Today | Next step |
+|---|---|
+| Terminal interface | Web chat UI (Streamlit or FastAPI) with a supervisor dashboard |
+| Escalation by phrase match | Add a second check, so paraphrases like "I want my money returned" also escalate |
+| Approval by keyword | Explicit approve / revise buttons |
+| One shared retriever for all agents | Filter chunks by department metadata |
+| A 3B model can still add facts that are not in the retrieved chunks | Show sources with each answer and check the answer against them |
+| Manual testing | A labelled test set to measure routing accuracy and answer grounding |
+| One fixed `thread_id` | One thread per customer |
 
 ---
 
-## Memory
+<div align="center">
 
-- State is checkpointed by `SqliteSaver` into `chatbot.db`, keyed by `thread_id`.
-- `app.py` uses a fixed `thread_id` (`customer_session_1`), so history persists **across restarts**.
-- Agents include recent turns (`utils/history.format_history`) in their prompts so follow-up questions work.
-- To start a fresh conversation, change the `thread_id` in `app.py` (or delete `chatbot.db`).
+Built by **[Ratul Pal](https://github.com/R-PAl-AIhub)** · B.Tech CSE (AI & ML), VIT Vellore
 
----
+<sub>If this project helped you, consider giving it a ⭐</sub>
 
-## Notes & customization
-
-- **LLM / models:** edit `utils/llm.py` (chat model) and `knowldgeBase/vector_db.py` + `database_retriver.py` (embedding model). Keep the embedding model identical for building and loading the store.
-- **Escalation triggers:** edit the keyword list in `utils/escalation.py`.
-- **Knowledge base:** add/replace `.txt` files in `knowldgeBase/`, then re-run `python -m knowldgeBase.vector_db`.
-- Run modules from the project root (use `python -m package.module`) so package imports resolve.
+</div>

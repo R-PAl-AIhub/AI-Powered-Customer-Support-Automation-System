@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Banner</title>
+<style>
+  html, body { margin: 0; background: #0d1117; }
+  #banner {
+    position: relative; width: 1280px; height: 420px; overflow: hidden; box-sizing: border-box;
+    padding: 46px 56px; border-radius: 18px; color: #f0f6fc;
+    font-family: Inter, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 0) 0 0 / 22px 22px,
+      linear-gradient(120deg, #0b0a1f 0%, #1a1745 55%, #10304a 100%);
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px;
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 999px; background: rgba(255,255,255,0.05);
+    font-size: 13.5px; color: #cfd3f0; letter-spacing: 0.1px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #3fb950; box-shadow: 0 0 0 3px rgba(63,185,80,0.25); }
+  h1 { margin: 22px 0 0; font-size: 46px; line-height: 1.08; font-weight: 800; letter-spacing: -1px; }
+  h1 span { color: #a99cff; }
+  p.sub { margin: 16px 0 0; width: 660px; font-size: 17px; line-height: 1.5; color: #b4b9d6; }
+  .stats { position: absolute; left: 56px; bottom: 40px; display: flex; gap: 12px; }
+  .stat { padding: 12px 18px; border-radius: 12px; background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12); min-width: 118px; }
+  .stat b { display: block; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .stat span { font-size: 12.5px; color: #a3a9c9; }
+  svg.net { position: absolute; right: 36px; top: 30px; }
+</style>
+</head>
+<body>
+<div id="banner">
+  <div class="eyebrow"><span class="dot"></span>LangGraph · RAG · Human-in-the-loop · runs locally on Ollama</div>
+  <h1>AI-Powered Customer<br><span>Support Automation</span></h1>
+  <p class="sub">A multi-agent assistant. It classifies each customer query, sends it to the right
+    specialist agent and answers from a company knowledge base. Refund, cancellation and
+    account-closure requests wait for a human supervisor.</p>
+  <div class="stats">
+    <div class="stat"><b>4</b><span>specialist agents</span></div>
+    <div class="stat"><b>12</b><span>escalation triggers</span></div>
+    <div class="stat"><b>4</b><span>knowledge-base docs</span></div>
+    <div class="stat"><b>3 B</b><span>params · Llama 3.2</span></div>
+  </div>
+
+  <svg class="net" width="440" height="370" viewBox="0 0 440 370" xmlns="http://www.w3.org/2000/svg"
+       font-family="Inter, sans-serif">
+    <defs>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#a99cff" stop-opacity="0.30"/>
+        <stop offset="100%" stop-color="#a99cff" stop-opacity="0"/>
+      </radialGradient>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#a99cff"/>
+      </marker>
+    </defs>
+    <circle cx="220" cy="130" r="120" fill="url(#glow)"/>
+    <g stroke="#a99cff" stroke-opacity="0.6" stroke-width="2" fill="none">
+      <path d="M220 66 V 96" marker-end="url(#ar)"/>
+      <path d="M220 148 C 220 170, 70 166, 70 196" marker-end="url(#ar)"/>
+      <path d="M220 148 C 220 170, 170 170, 170 196" marker-end="url(#ar)"/>
+      <path d="M220 148 C 220 170, 270 170, 270 196" marker-end="url(#ar)"/>
+      <path d="M220 148 C 220 170, 370 166, 370 196" marker-end="url(#ar)"/>
+      <path d="M70 236 C 70 262, 220 258, 220 282" stroke-dasharray="4 5"/>
+      <path d="M170 236 C 170 258, 220 258, 220 282" stroke-dasharray="4 5"/>
+      <path d="M270 236 C 270 258, 220 258, 220 282" stroke-dasharray="4 5"/>
+      <path d="M370 236 C 370 262, 220 258, 220 282" stroke-dasharray="4 5"/>
+    </g>
+    <!-- customer -->
+    <rect x="150" y="30" width="140" height="36" rx="18" fill="#1c1a40" stroke="#6d63c9"/>
+    <text x="220" y="53" text-anchor="middle" font-size="13" fill="#e6e4ff">Customer query</text>
+    <!-- classifier -->
+    <rect x="140" y="100" width="160" height="48" rx="12" fill="#221f52" stroke="#a99cff" stroke-width="2"/>
+    <text x="220" y="122" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">classifyQuery</text>
+    <text x="220" y="139" text-anchor="middle" font-size="11" fill="#b4b9d6">intent → router</text>
+    <!-- agents -->
+    <g font-size="12" font-weight="600" text-anchor="middle">
+      <rect x="22" y="198" width="96" height="38" rx="10" fill="#12233d" stroke="#3987e5" stroke-width="1.6"/>
+      <text x="70" y="222" fill="#cfe2ff">Sales</text>
+      <rect x="122" y="198" width="96" height="38" rx="10" fill="#2b1a14" stroke="#eb6834" stroke-width="1.6"/>
+      <text x="170" y="222" fill="#ffd9c7">Technical</text>
+      <rect x="222" y="198" width="96" height="38" rx="10" fill="#0f2a22" stroke="#1baf7a" stroke-width="1.6"/>
+      <text x="270" y="222" fill="#c6f2e1">Billing</text>
+      <rect x="322" y="198" width="96" height="38" rx="10" fill="#2b2410" stroke="#eda100" stroke-width="1.6"/>
+      <text x="370" y="222" fill="#ffe8b0">Account</text>
+    </g>
+    <!-- review -->
+    <rect x="128" y="284" width="184" height="50" rx="12" fill="#2a1d1d" stroke="#f0883e" stroke-width="2"/>
+    <text x="220" y="306" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff">Supervisor review</text>
+    <text x="220" y="323" text-anchor="middle" font-size="11" fill="#e3c3b0">refund · cancel · close account</text>
+  </svg>
+</div>
+</body>
+</html>
